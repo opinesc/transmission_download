@@ -44,9 +44,15 @@ fi
 }
 
 fill_log(){
-
-
+ dateIn=$(date +"%Y-%m-%d %H:%M")
+ echo "${greenColour}[ ${dateIn} ]${endColour}${purpleColour} ($2)->${endColour} ${grayColour} $1 ${endColour}" >> log.txt
 }
+
+check_log(){
+  data=$(cat log.txt | grep -ic ${2})
+  if [ $data -eq 0 ]; then return 1 ; else return 0; fi
+}
+
 init(){
 for i in $(seq 2 $TORRENTS_LEN)  # (( i=0; i< $TORRENT_LEN; i++ ))
 do
@@ -56,9 +62,12 @@ do
   # Se pone así $(funcion ) para que el echo lo pase a la variable
   ID=$(get_id $i) 
   NOMBRE=$(get_Nombre $ID)
+  # fill_log $NOMBRE "D"
   # NOMBRE= $(get_id $1 | get_Nombre2)
-  echo $ID'\t-> '$NOMBRE #>> torrentLog
+  # echo $ID'\t-> '$NOMBRE #>> torrentLog
 done
+echo $NOMBRE
+if [ $(check_log "D" $NOMBRE) ]; then echo "No grabar"; else echo "grabar";fi
 }
 
 init
