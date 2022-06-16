@@ -45,12 +45,23 @@ fi
 
 fill_log(){
  dateIn=$(date +"%Y-%m-%d %H:%M")
- echo "${greenColour}[ ${dateIn} ]${endColour}${purpleColour} ($2)->${endColour} ${grayColour} $1 ${endColour}" >> log.txt
+ echo "${greenColour}[ ${dateIn} ]${endColour}${purpleColour} $2 ${endColour}${grayColour}$1 ${endColour}" >> log.txt
 }
 
 check_log(){
   data=$(cat log.txt | grep -ic ${2})
   if [ $data -eq 0 ]; then return 1 ; else return 0; fi
+}
+get_title(){
+  # count_parts=$(echo $1 | grep -o '-' | wc -l )
+  file=$1
+  title=${file%%- T*}
+  prob=$(echo ${file##*Cap.}| cut -d "]" -f 1)
+  season=$(echo $prob  | rev | cut -c 3- | rev)
+  chapter=$(echo $prob |rev | cut -c -2 | rev)
+  # echo '[X] '$title $season'x'$chapter
+  fillname=$season'x'$chapter' '$title
+  fill_log $fillname '[D]'
 }
 
 init(){
@@ -62,11 +73,14 @@ do
   # Se pone así $(funcion ) para que el echo lo pase a la variable
   ID=$(get_id $i) 
   NOMBRE=$(get_Nombre $ID)
+  title=$(get_title $NOMBRE)
+  echo $title
   # fill_log $NOMBRE "D"
   # NOMBRE= $(get_id $1 | get_Nombre2)
   # echo $ID'\t-> '$NOMBRE #>> torrentLog
 done
-echo $NOMBRE
+# NOMBRE"=$(echo $NOMBRE | sed -e 's/[/\[/g' -e 's/]/\]/g' )"
+# echo $NOMBRE
 if [ $(check_log "D" $NOMBRE) ]; then echo "No grabar"; else echo "grabar";fi
 }
 
