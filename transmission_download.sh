@@ -49,8 +49,8 @@ fill_log(){
 }
 
 check_log(){
-  data=$(cat log.txt | grep -ic ${2})
-  if [ $data -eq 0 ]; then return 1 ; else return 0; fi
+  data=$(cat log.txt | grep -ic ${1})
+  if [ $data -eq 0 ]; then return 0 ; else return 1; fi
 }
 get_title(){
   # count_parts=$(echo $1 | grep -o '-' | wc -l )
@@ -59,9 +59,27 @@ get_title(){
   prob=$(echo ${file##*Cap.}| cut -d "]" -f 1)
   season=$(echo $prob  | rev | cut -c 3- | rev)
   chapter=$(echo $prob |rev | cut -c -2 | rev)
-  # echo '[X] '$title $season'x'$chapter
-  fillname=$season'x'$chapter' '$title
-  fill_log $fillname '[D]'
+  echo '[X] '$title $season'x'$chapter
+  fillname=`echo $season'x'$chapter $title`
+  echo "Filname ->"$fillname
+  check_txt=`echo '[D]' $fillname`
+  if [ check_log `$check_txt` ]; then
+    echo "ya existe $check_txt"
+  else 
+    # fill_log $fillname '[D]'
+    echo $check_txt
+  fi
+}
+get_info() {
+  data=$(transmission-remote http://192.168.1.24:9091/transmission --torrent $1 -i)
+  Name_file=$(echo "$data" | grep  'Name' | cut --complement -c -8)
+  Done_file=$(echo "$data" | grep Done | cut --complement -c -15)
+  Ratio_file=$(echo "$data" | grep Ratio: | cut -d ':' -f2-3)
+  Info_file=$(echo "$Name_file$Done_file$Ratio_file")
+  echo "Info ->"$Info_file
+}
+step_downloaded(){
+  echo "step_downloaded"
 }
 
 init(){
@@ -72,16 +90,22 @@ do
   #NOMBRE=$(transmission-remote http://192.168.1.24:9091/transmission --torrent $ID --info| grep "Name" | cut --complement -c -8)
   # Se pone así $(funcion ) para que el echo lo pase a la variable
   ID=$(get_id $i) 
-  NOMBRE=$(get_Nombre $ID)
-  title=$(get_title $NOMBRE)
-  echo $title
+  echo "ID -> ${ID}"
+  # NOMBRE=$(get_Nombre $ID)
+  # prueba=$(get_info $ID)
+  get_info $ID
+  # title=$(get_title $NOMBRE)
+  # echo $prueba
   # fill_log $NOMBRE "D"
   # NOMBRE= $(get_id $1 | get_Nombre2)
   # echo $ID'\t-> '$NOMBRE #>> torrentLog
 done
 # NOMBRE"=$(echo $NOMBRE | sed -e 's/[/\[/g' -e 's/]/\]/g' )"
 # echo $NOMBRE
-if [ $(check_log "D" $NOMBRE) ]; then echo "No grabar"; else echo "grabar";fi
+if [ $(check_log "D" $title) ]; then
+  echo "No grabar"
+else 
+  echo "grabar";fi
 }
 
 init
